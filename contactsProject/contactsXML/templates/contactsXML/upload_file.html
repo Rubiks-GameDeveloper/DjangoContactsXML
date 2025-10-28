@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Загрузить XML</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Загрузить XML-файл</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Загрузить и проверить</button>
+    </form>
+    <p><a href="{% url 'contactsXML:home' %}">На главную</a></p>
+</body>
+</html>

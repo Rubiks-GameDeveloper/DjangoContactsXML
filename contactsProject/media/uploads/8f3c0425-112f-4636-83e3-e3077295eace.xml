@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<contacts>
+    <contact>
+        <first_name>123123</first_name>
+        <last_name>Иванов</last_name>
+        <email>ivan@example.com</email>
+        <phone>+79991234567</phone>
+    </contact>
+</contacts>

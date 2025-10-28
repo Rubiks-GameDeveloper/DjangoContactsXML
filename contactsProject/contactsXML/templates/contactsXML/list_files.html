@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XML-файлы</title>
+    <meta charset="utf-8">
+    <style>
+        .file { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .contact { background: #f9f9f9; margin: 8px 0; padding: 10px; border-left: 4px solid #007cba; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Загруженные XML-файлы</h1>
+
+    {% include "contactsXML/messages.html" %}
+
+    {% if not contents %}
+        <p>XML-файлов нет.</p>
+    {% else %}
+        {% for item in contents %}
+            <div class="file">
+                <h3>{{ item.filename }}</h3>
+                {% if item.error %}
+                    <p class="error">{{ item.error }}</p>
+                {% elif not item.contacts %}
+                    <p>Контакты не найдены в файле.</p>
+                {% else %}
+                    {% for c in item.contacts %}
+                        <div class="contact">
+                            <strong>{{ c.first_name }} {{ c.last_name }}</strong><br>
+                            Email: {{ c.email }}<br>
+                            Телефон: {{ c.phone }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <p><a href="{% url 'contactsXML:home' %}">На главную</a></p>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Добавить контакт</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Добавить контакт → XML</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Сохранить в XML</button>
+    </form>
+    <p><a href="{% url 'contactsXML:home' %}">На главную</a></p>
+</body>
+</html>
