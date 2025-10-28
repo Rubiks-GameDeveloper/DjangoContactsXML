@@ -19,7 +19,15 @@
     {% else %}
         {% for item in contents %}
             <div class="file">
-                <h3>{{ item.filename }}</h3>
+                <h3>
+                    {{ item.filename }}
+                    <small>
+                        <a href="{% url 'contactsXML:download_file' item.filename %}"
+                           class="download-link"
+                           title="Скачать XML"> Скачать
+                        </a>
+                    </small>
+                </h3>
                 {% if item.error %}
                     <p class="error">{{ item.error }}</p>
                 {% elif not item.contacts %}

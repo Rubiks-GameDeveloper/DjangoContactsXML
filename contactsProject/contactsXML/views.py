@@ -1,10 +1,15 @@
 import os
 import uuid
+import tempfile
+import shutil
+from django.core.files.uploadedfile import UploadedFile
 import xml.etree.ElementTree as ET
 from django.shortcuts import render, redirect
-from django.conf import settings
 from django.contrib import messages
 from .forms import ContactForm, UploadFileForm
+from django.http import HttpResponse, Http404
+from django.conf import settings
+from django.utils.encoding import escape_uri_path
 
 UPLOAD_FOLDER = os.path.join(settings.MEDIA_ROOT, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -20,7 +25,6 @@ def add_contact(request):
             filename = f"{uuid.uuid4()}.xml"
             filepath = os.path.join(UPLOAD_FOLDER, filename)
 
-            # Создаём XML: <contacts><contact>...</contact></contacts>
             root = ET.Element('contacts')
             contact = ET.SubElement(root, 'contact')
             ET.SubElement(contact, 'first_name').text = data['first_name']
@@ -37,29 +41,50 @@ def add_contact(request):
         form = ContactForm()
     return render(request, 'contactsXML/add_contact.html', {'form': form})
 
+
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            uploaded_file = request.FILES['file']
-            filename = f"{uuid.uuid4()}.xml"
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            uploaded_file: UploadedFile = request.FILES['file']
 
-            # Сохраняем файл
-            with open(filepath, 'wb+') as f:
+            # 1. Сохраняем во временный файл
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                 for chunk in uploaded_file.chunks():
-                    f.write(chunk)
+                    tmp_file.write(chunk)
+                temp_path = tmp_file.name
 
-            # === СТРОГАЯ ПРОВЕРКА СТРУКТУРЫ ===
-            is_valid, error_msg, _ = validate_xml_structure(filepath)
+            try:
+                # 2. Проверяем структуру XML
+                is_valid, error_msg, _ = validate_xml_structure(temp_path)
 
-            if not is_valid:
-                os.remove(filepath)
-                messages.error(request, f"Файл не соответствует формату: {error_msg}. Файл удалён.")
-            else:
-                messages.success(request, f"Файл {filename} успешно загружен и проверен.")
+                if not is_valid:
+                    messages.error(request, f"Файл не соответствует формату: {error_msg}")
+                    return redirect('contactsXML:list_files')
+
+                # 3. УСПЕХ → перемещаем в uploads
+                filename = f"{uuid.uuid4()}.xml"
+                final_path = os.path.join(UPLOAD_FOLDER, filename)
+                shutil.move(temp_path, final_path)
+
+                messages.success(request, f"Файл {filename} успешно загружен.")
+
+            except Exception as e:
+                # Любая ошибка — удаляем временный файл
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                messages.error(request, f"Ошибка обработки файла: {e}")
+
+            finally:
+                # Гарантированно удаляем временный файл, если он остался
+                if 'temp_path' in locals() and os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except:
+                        pass
 
             return redirect('contactsXML:list_files')
+
     else:
         form = UploadFileForm()
     return render(request, 'contactsXML/upload_file.html', {'form': form})
@@ -96,43 +121,61 @@ def validate_xml_structure(filepath):
     try:
         tree = ET.parse(filepath)
         root = tree.getroot()
-
-        # Ищем все <contact> в любом месте
         contact_elements = root.findall('.//contact')
+
         if not contact_elements:
-            return False, "В файле не найден тег <contact>", []
+            return False, "Не найден тег <contact>", []
 
         contacts = []
-        for contact in contact_elements:
-            # Проверяем наличие всех обязательных полей
-            first_name = contact.findtext('first_name')
-            last_name = contact.findtext('last_name')
-            email = contact.findtext('email')
-            phone = contact.findtext('phone')
+        for idx, contact in enumerate(contact_elements, 1):
+            child_tags = [child.tag for child in contact]
 
-            if None in (first_name, last_name, email, phone):
-                missing = [name for name, val in [
-                    ('first_name', first_name),
-                    ('last_name', last_name),
-                    ('email', email),
-                    ('phone', phone)
-                ] if val is None]
-                return False, f"В теге <contact> отсутствуют поля: {', '.join(missing)}", []
+            required_fields = {'first_name', 'last_name', 'email', 'phone'}
+            if set(child_tags) != required_fields:
+                found = set(child_tags)
+                missing = required_fields - found
+                extra = found - required_fields
+                error_parts = []
+                if missing:
+                    error_parts.append(f"отсутствуют: {', '.join(missing)}")
+                if extra:
+                    error_parts.append(f"лишние: {', '.join(extra)}")
+                return False, f"Контакт #{idx}: неверная структура — {', '.join(error_parts)}", []
 
-            # Дополнительно: email должен содержать @
-            if '@' not in email:
-                return False, f"Некорректный email: {email}", []
+            data = {
+                'first_name': contact.findtext('first_name', '').strip(),
+                'last_name': contact.findtext('last_name', '').strip(),
+                'email': contact.findtext('email', '').strip(),
+                'phone': contact.findtext('phone', '').strip(),
+            }
 
-            contacts.append({
-                'first_name': first_name.strip(),
-                'last_name': last_name.strip(),
-                'email': email.strip(),
-                'phone': phone.strip(),
-            })
+            form = ContactForm(data)
+            if not form.is_valid():
+                errors = []
+                for field, msgs in form.errors.items():
+                    errors.append(f"{field}: {', '.join(msgs)}")
+                return False, f"Контакт #{idx}: {'; '.join(errors)}", []
+
+            contacts.append(form.cleaned_data)
 
         return True, "OK", contacts
 
     except ET.ParseError as e:
         return False, f"XML невалиден: {e}", []
     except Exception as e:
-        return False, f"Ошибка обработки: {e}", []
+        return False, f"Ошибка: {e}", []
+
+def download_file(request, filename):
+    filepath = os.path.join(settings.MEDIA_ROOT, 'uploads', filename)
+
+    if not os.path.exists(filepath) or not filename.endswith('.xml'):
+        raise Http404("Файл не найден или не является XML.")
+
+    with open(filepath, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/xml')
+
+        # Устанавливаем заголовок для скачивания
+        safe_filename = escape_uri_path(filename)
+        response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
+
+        return response
