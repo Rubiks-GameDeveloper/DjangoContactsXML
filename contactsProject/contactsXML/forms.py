@@ -1,4 +1,3 @@
-# contactsXML/forms.py
 from django import forms
 from django.core.validators import RegexValidator
 
@@ -7,13 +6,11 @@ from django.core.validators import RegexValidator
 
 class ContactForm(forms.Form):
 
-    # Только кириллица, минимум 2 буквы
     name_validator = RegexValidator(
         regex=r'^[А-ЯЁа-яё]{2,}$',
         message="Поле должно содержать только русские буквы, минимум 2 символа."
     )
 
-    # Телефон: +7 900 000 00 00 или 89000000000
     phone_validator = RegexValidator(
         regex=r'^(\+7\s?\d{3}\s?\d{3}\s?\d{2}\s?\d{2}|8\d{10})$',
         message="Телефон должен быть в формате: +7 900 000 00 00 или 89000000000"
@@ -74,6 +71,16 @@ class ContactForm(forms.Form):
             'placeholder': '+7 900 000 00 00',
             'inputmode': 'numeric'
         })
+    )
+
+    CHOICEGENDER = [
+        ('Мужчина', 'Мужчина'),
+        ('Женщина', 'Женщина')
+    ]
+
+    gender = forms.ChoiceField(
+        widget=forms.RadioSelect,
+        choices=CHOICEGENDER,
     )
 
     def clean_first_name(self):

@@ -1,9 +1,7 @@
-# contactsXML/urls.py
-
 from django.urls import path
 from . import views
 
-app_name = 'contactsXML'  # ← ВАЖНО! для {% url 'contactsXML:list_files' %}
+app_name = 'contactsXML'
 
 urlpatterns = [
     path('', views.home, name='home'),
