@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Добавить контакт</title>
-    <meta charset="utf-8">
-</head>
-<body>
-    <h1>Добавить контакт → XML</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Сохранить в XML</button>
-    </form>
-    <p><a href="{% url 'contactsXML:home' %}">На главную</a></p>
-</body>
-</html>
+{% extends 'contactsXML/base.html' %}
+{% block title %}Добавить контакт{% endblock %}
+{% block content %}
+<h2 class="mb-4">Добавить контакт</h2>
+<form method="post" class="card p-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

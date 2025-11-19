@@ -1,0 +1,57 @@
+{% extends 'contactsXML/base.html' %}
+{% load static %}
+{% block title %}Список контактов{% endblock %}
+{% block head %}
+<script src="{% static 'contactsXML/js/search.js' %}"></script>
+{% endblock %}
+{% block content %}
+<h2 class="mb-4">Список контактов</h2>
+<form method="get" class="mb-3">
+    <select name="source" class="form-select d-inline-block w-auto">
+        <option value="db" {% if source == 'db' %}selected{% endif %}>База Данных</option>
+        <option value="file" {% if source == 'file' %}selected{% endif %}>XML Файл</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Переключить</button>
+    {% if source == 'file' %}
+        <a href="{% url 'contactsXML:download_file' %}" class="btn btn-info ms-2">Скачать XML</a>
+    {% endif %}
+</form>
+{% if source == 'db' %}
+    <input type="text" id="search" placeholder="Поиск по имени, фамилии, email" class="form-control mb-3">
+{% endif %}
+{% if error_msg %}
+    <div class="alert alert-danger mt-3">
+        Ошибка в XML-файле: {{ error_msg }}. Файл может быть пустым или повреждённым.
+    </div>
+{% endif %}
+<table class="table table-striped" id="contacts-table">
+    <thead>
+        <tr>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Email</th>
+            <th>Телефон</th>
+            {% if source == 'db' %}<th>Действия</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% if contents %}
+            {% for c in contents %}
+                <tr>
+                    <td>{{ c.first_name }}</td>
+                    <td>{{ c.last_name }}</td>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.phone }}</td>
+                    {% if source == 'db' %}
+                        <td>
+                            <a href="{% url 'contactsXML:delete_contact' c.id %}" class="btn btn-sm btn-danger">Удалить</a>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="{% if source == 'db' %}5{% else %}4{% endif %}">Нет контактов в выбранном источнике.</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

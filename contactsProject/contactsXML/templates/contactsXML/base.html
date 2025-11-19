@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Контакты{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'contactsXML:home' %}">Контакты App</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contactsXML:add_contact' %}">Добавить</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contactsXML:upload_file' %}">Загрузить XML</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contactsXML:list_contacts' %}">Список</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        {% include "contactsXML/messages.html" %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

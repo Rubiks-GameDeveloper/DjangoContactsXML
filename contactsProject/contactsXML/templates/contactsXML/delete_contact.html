@@ -1,0 +1,10 @@
+{% extends 'contactsXML/base.html' %}
+{% block title %}Удалить контакт{% endblock %}
+{% block content %}
+<h2 class="mb-4">Удалить контакт: {{ contact }}</h2>
+<form method="post" class="card p-4">
+    {% csrf_token %}
+    <p>Вы уверены?</p>
+    <button type="submit" class="btn btn-danger">Удалить</button>
+</form>
+{% endblock %}

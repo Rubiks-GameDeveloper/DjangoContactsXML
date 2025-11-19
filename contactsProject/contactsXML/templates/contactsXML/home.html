@@ -1,15 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Контакты (XML)</title>
-    <meta charset="utf-8">
-</head>
-<body>
-    <h1>Контакты — XML</h1>
-    <p><a href="{% url 'contactsXML:add_contact' %}">Добавить контакт</a></p>
-    <p><a href="{% url 'contactsXML:upload_file' %}">Загрузить XML-файл</a></p>
-    <p><a href="{% url 'contactsXML:list_files' %}">Все файлы</a></p>
-
-    {% include "contactsXML/messages.html" %}
-</body>
-</html>
+{% extends 'contactsXML/base.html' %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h1 class="text-center mb-4">Управление контактами (XML / БД)</h1>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <p>Добро пожаловать! Выберите действие.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

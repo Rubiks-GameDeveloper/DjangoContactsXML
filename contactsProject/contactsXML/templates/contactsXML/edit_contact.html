@@ -1,0 +1,10 @@
+{% extends 'contactsXML/base.html' %}
+{% block title %}Редактировать контакт{% endblock %}
+{% block content %}
+<h2 class="mb-4">Редактировать контакт</h2>
+<form method="post" class="card p-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+</form>
+{% endblock %}
