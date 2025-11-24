@@ -2,7 +2,22 @@
 {% load static %}
 {% block title %}Список контактов{% endblock %}
 {% block head %}
-<script src="{% static 'contactsXML/js/search.js' %}"></script>
+<script src="{% static 'js/search.js' %}"></script>
+<script>
+    // Автоматическая смена источника при выборе в select
+    document.addEventListener('DOMContentLoaded', function() {
+        var sourceSelect = document.querySelector('select[name="source"]');
+        if (sourceSelect) {
+            sourceSelect.addEventListener('change', function() {
+                var selectedSource = this.value;
+                window.location.href = "?source=" + selectedSource;
+            });
+        }
+
+        // Фикс для поиска: передаём URL из шаблона
+        window.searchUrl = "{% url 'contactsXML:search_contacts' %}";  // ← Генерируем URL здесь
+    });
+</script>
 {% endblock %}
 {% block content %}
 <h2 class="mb-4">Список контактов</h2>
@@ -11,13 +26,13 @@
         <option value="db" {% if source == 'db' %}selected{% endif %}>База Данных</option>
         <option value="file" {% if source == 'file' %}selected{% endif %}>XML Файл</option>
     </select>
-    <button type="submit" class="btn btn-secondary">Переключить</button>
     {% if source == 'file' %}
         <a href="{% url 'contactsXML:download_file' %}" class="btn btn-info ms-2">Скачать XML</a>
     {% endif %}
 </form>
 {% if source == 'db' %}
-    <input type="text" id="search" placeholder="Поиск по имени, фамилии, email" class="form-control mb-3">
+    <input type="text" id="search" placeholder="Поиск по имени, фамилии, email, телефону" class="form-control mb-3">
+    <!-- Кнопка "Поиск" удалена — теперь только realtime на keyup -->
 {% endif %}
 {% if error_msg %}
     <div class="alert alert-danger mt-3">
@@ -44,6 +59,7 @@
                     <td>{{ c.phone }}</td>
                     {% if source == 'db' %}
                         <td>
+                            <a href="{% url 'contactsXML:edit_contact' c.id %}" class="btn btn-sm btn-warning">Редактировать</a>
                             <a href="{% url 'contactsXML:delete_contact' c.id %}" class="btn btn-sm btn-danger">Удалить</a>
                         </td>
                     {% endif %}

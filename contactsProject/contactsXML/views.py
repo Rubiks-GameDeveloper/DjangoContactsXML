@@ -192,12 +192,15 @@ def delete_contact(request, pk):
 
 def search_contacts(request):
     query = request.GET.get('query', '')
-    contacts = Contact.objects.filter(
-        models.Q(first_name__icontains=query) |
-        models.Q(last_name__icontains=query) |
-        models.Q(email__icontains=query)
-    )
-    data = list(contacts.values())
+    contacts = Contact.objects.all()
+    if query:
+        contacts = contacts.filter(
+            models.Q(first_name__icontains=query) |
+            models.Q(last_name__icontains=query) |
+            models.Q(email__icontains=query) |
+            models.Q(phone__icontains=query)  # ← Добавлен поиск по телефону
+        )
+    data = list(contacts.values('id', 'first_name', 'last_name', 'email', 'phone'))  # ← Добавлен id для ссылок
     return JsonResponse(data, safe=False)
 
 def download_file(request):

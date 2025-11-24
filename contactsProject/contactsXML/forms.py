@@ -175,10 +175,7 @@ class EditContactForm(forms.ModelForm):
         fields = '__all__'
 
     # Добавляем валидацию из ContactForm
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['first_name'].validators = ContactForm.name_validator
-        # ... для остальных полей
+
 
 class SearchForm(forms.Form):
     query = forms.CharField(label="Поиск", required=False)
