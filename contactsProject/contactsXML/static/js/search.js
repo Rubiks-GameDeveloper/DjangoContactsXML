@@ -1,13 +1,12 @@
 $(document).ready(function() {
-    // Только realtime на keyup — вызываем всегда, даже для пустого query
     $('#search').on('keyup', function() {
         var query = $(this).val();
-        searchContacts(query);  // Убрано условие length > 1 — теперь для любого изменения
+        searchContacts(query);
     });
 
     function searchContacts(query) {
         $.ajax({
-            url: window.searchUrl,  // ← Используем URL из шаблона
+            url: window.searchUrl,
             data: {'query': query},
             success: function(data) {
                 var tbody = $('#contacts-table tbody');

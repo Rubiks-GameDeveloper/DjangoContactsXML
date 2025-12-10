@@ -63,7 +63,6 @@ def validate_xml_structure(filepath):
                 missing = [k for k, v in data.items() if not v]
                 return False, f"Контакт #{idx}: пустые поля после очистки: {', '.join(missing)}", []
 
-            # Валидация через новую форму (без 'storage')
             form = ContactValidationForm(data)
             if not form.is_valid():
                 errors = []
@@ -71,7 +70,6 @@ def validate_xml_structure(filepath):
                     errors.append(f"{field}: {', '.join(msgs)}")
                 return False, f"Контакт #{idx}: ошибки валидации — {'; '.join(errors)}", []
 
-            # Используем cleaned_data (с нормализацией из clean_ методов)
             contacts.append(form.cleaned_data)
 
         return True, "OK", contacts
